@@ -1,8 +1,105 @@
-body{
-    width:300px;
-    padding:20px;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-button{
-    padding:10px;
+body {
+    width: 320px;
+    min-height: 400px;
+
+    font-family: Arial, sans-serif;
+
+    background: linear-gradient(
+        135deg,
+        #052e16,
+        #14532d,
+        #166534
+    );
+
+    color: white;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    text-align: center;
+}
+
+.logo {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.title {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    color: #dcfce7;
+}
+
+
+
+.prayer-card {
+    background: rgba(255,255,255,0.08);
+
+    border: 1px solid rgba(134, 239, 172, 0.25);
+
+    border-radius: 20px;
+
+    padding: 25px;
+
+    backdrop-filter: blur(10px);
+
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.15);
+
+}
+
+.label {
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+#prayer-name {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+#prayer-time {
+    font-size: 1.4rem;
+    color: #fbbf24;
+    margin-bottom: 20px;
+}
+
+#pray-btn {
+    width: 100%;
+
+    border: none;
+
+    border-radius: 12px;
+
+    padding: 14px;
+
+    font-size: 1rem;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: 0.3s;
+}
+
+#pray-btn:hover {
+    transform: translateY(-2px);
+}
+
+#status {
+    margin-top: 15px;
+    color: #22c55e;
+    font-weight: bold;
 }
