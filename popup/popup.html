@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="logo">&#128332</div>
+
+    <h1 class="title">DID U PRAY?</h1>
+
+    
+    <div id="waiting-screen" class="prayer-card">
+
+        <p class="label">Next Prayer</p>
+
+        <h2 id="prayer-name"></h2>
+
+        <p id="prayer-time"></p>
+
+        <p id="countdown"></p>
+
+        <button id="notify-btn" class="btn">
+            Notify Me
+        </button>
+
+    </div>
+
+
+    <div id="adhan-screen" class="prayer-card hidden">
+
+        <p class="label">Time For</p>
+
+        <h2 id="current-prayer"></h2>
+
+        <p id="current-prayer-time"></p>
+
+        <button id="pray-btn" class="btn">
+            Wlh I Prayed
+        </button>
+
+    </div>
+
+</div>
+
+<script src="popup.js"></script>
+
+</body>
+</html>

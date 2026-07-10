@@ -65,6 +65,11 @@ body {
     margin-bottom: 10px;
 }
 
+.hidden{
+    display:none;
+}
+
+
 #prayer-name {
     font-size: 2rem;
     margin-bottom: 10px;
@@ -76,7 +81,7 @@ body {
     margin-bottom: 20px;
 }
 
-#pray-btn {
+.btn {
     width: 100%;
 
     border: none;
@@ -94,7 +99,7 @@ body {
     transition: 0.3s;
 }
 
-#pray-btn:hover {
+.btn:hover {
     transform: translateY(-2px);
 }
 
