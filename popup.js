@@ -1,25 +1,31 @@
-async function getPrayerTimes() {
-    try {
-        const response = await fetch(
-            "https://api.aladhan.com/v1/timingsByCity?city=Algiers&country=Algeria"
-        );
+async function init() {
+  const state = await chrome.storage.local.get([
+    "isAdhanTime", "currentPrayer", "currentPrayerTime",
+    "nextPrayer", "nextPrayerTime"
+  ]);
 
-        const data = await response.json();
-
-        const timings = data.data.timings;
-
-        updateUI(timings);
-
-    } catch (error) {
-        console.error(error);
-    }
+  if (state.isAdhanTime) {
+    showAdhanScreen();
+    document.getElementById("current-prayer").textContent = state.currentPrayer;
+    document.getElementById("current-prayer-time").textContent = state.currentPrayerTime;
+  } else {
+    showWaitingScreen();
+    document.getElementById("prayer-name").textContent = state.nextPrayer;
+    document.getElementById("prayer-time").textContent = state.nextPrayerTime;
+  }
 }
 
+init();
 const waitingScreen =
     document.getElementById("waiting-screen");
 
 const adhanScreen =
     document.getElementById("adhan-screen");
+
+
+document.getElementById("notify-btn").addEventListener("click", () => {
+  chrome.storage.local.set({ notificationsEnabled: true });
+});
 
 function showWaitingScreen() {
 
@@ -35,72 +41,6 @@ function showAdhanScreen() {
 
 }
 
-function getCurrentPrayer(timings) {
-
-    const now = new Date();
-
-    const currentMinutes =
-        now.getHours() * 60 +
-        now.getMinutes();
-
-    const prayers = [
-        { name: "Fajr", time: timings.Fajr },
-        { name: "Dhuhr", time: timings.Dhuhr },
-        { name: "Asr", time: timings.Asr },
-        { name: "Maghrib", time: timings.Maghrib },
-        { name: "Isha", time: timings.Isha }
-    ];
-
-    for (const prayer of prayers) {
-
-        const prayerMinutes =
-            timeToMinutes(prayer.time);
-
-        if (currentMinutes === prayerMinutes) {
-
-            return prayer;
-
-        }
-    }
-
-    return null;
-}
-
-function timeToMinutes(time) {
-
-    const [hour, minute] = time.split(":");
-
-    return Number(hour) * 60 + Number(minute);
-}
-
-function getNextPrayer(timings) {
-
-    const now = new Date();
-
-    const currentMinutes =
-        now.getHours() * 60 +
-        now.getMinutes();
-
-    const prayers = [
-        { name: "Fajr", time: timings.Fajr },
-        { name: "Dhuhr", time: timings.Dhuhr },
-        { name: "Asr", time: timings.Asr },
-        { name: "Maghrib", time: timings.Maghrib },
-        { name: "Isha", time: timings.Isha }
-    ];
-
-    for (const prayer of prayers) {
-
-        const prayerMinutes =
-            timeToMinutes(prayer.time);
-
-        if (currentMinutes < prayerMinutes) {
-            return prayer;
-        }
-    }
-
-    return prayers[0];
-}
 
 function updateUI(timings) {
 
