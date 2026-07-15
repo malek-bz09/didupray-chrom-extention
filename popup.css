@@ -70,15 +70,15 @@ body {
 }
 
 
-#prayer-name {
-    font-size: 2rem;
+#countdown {
+    font-size: 1.4rem;
     margin-bottom: 10px;
 }
 
-#prayer-time {
-    font-size: 1.4rem;
+#next-prayer-time{
+    font-size: 2rem;
     color: #fbbf24;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .btn {

@@ -15,6 +15,22 @@
     "storage",
     "tabs",
     "notifications",
-    "alarms"
+    "alarms",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "https://api.aladhan.com/*",
+    "*://*.youtube.com/*",
+    "*://*.instagram.com/*",
+    "*://*.tiktok.com/*",
+    "*://*.facebook.com/*",
+    "*://*.x.com/*",
+    "*://*.twitter.com/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["blocked.html"],
+      "matches": ["<all_urls>"]
+    }
   ]
 }
