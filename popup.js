@@ -41,11 +41,15 @@ function formatCountdown(nextPrayerTime) {
 
 let countdownTimer = null;
 
-function startCountdown(nextPrayerTime) {
+function startCountdown(nextPrayerTime, isStale) {
   if (countdownTimer) clearInterval(countdownTimer);
 
   const update = () => {
-    document.getElementById("countdown").textContent = formatCountdown(nextPrayerTime);
+    let text = formatCountdown(nextPrayerTime);
+    if (isStale) {
+      text += " (offline, using last known times)";
+    }
+    document.getElementById("countdown").textContent = text;
   };
 
   update();
@@ -75,9 +79,15 @@ async function render() {
     "lastError",
     "timingsStale",
     "notificationsEnabled",
+    "locationCity",
+    "locationCountry",
+    "calcMethod",
   ]);
 
   updateNotifyButton(Boolean(state.notificationsEnabled));
+
+  const locationEl = document.getElementById("location-display");
+  locationEl.textContent = `${state.locationCity ?? "Algiers"}, ${state.locationCountry ?? "Algeria"} (method ${state.calcMethod ?? 19})`;
 
   if (state.lastError && !state.nextPrayerTime && !state.currentPrayerTime) {
     stopCountdown();
@@ -95,11 +105,7 @@ async function render() {
     document.getElementById("next-prayer-name").textContent = state.nextPrayer ?? "—";
     document.getElementById("next-prayer-time").textContent = state.nextPrayerTime ?? "";
     if (state.nextPrayerTime) {
-      startCountdown(state.nextPrayerTime);
-    }
-    if (state.timingsStale) {
-      document.getElementById("countdown").textContent +=
-        " (offline, using last known times)";
+      startCountdown(state.nextPrayerTime, state.timingsStale);
     }
   }
 }
@@ -113,14 +119,83 @@ document.getElementById("notify-btn").addEventListener("click", async () => {
 
 document.getElementById("pray-btn").addEventListener("click", () => {
   chrome.storage.local.set({ isAdhanTime: false });
-  render();
+});
+
+const settingsToggle = document.getElementById("settings-toggle");
+const settingsPanel  = document.getElementById("settings-panel");
+const settingsCity   = document.getElementById("settings-city");
+const settingsCountry = document.getElementById("settings-country");
+const settingsMethod = document.getElementById("settings-method");
+const settingsSave   = document.getElementById("settings-save");
+const settingsCancel = document.getElementById("settings-cancel");
+const settingsStatus = document.getElementById("settings-status");
+
+async function renderSettings() {
+  const { locationCity, locationCountry, calcMethod } =
+    await chrome.storage.local.get(["locationCity", "locationCountry", "calcMethod"]);
+  settingsCity.value    = locationCity    || "Algiers";
+  settingsCountry.value = locationCountry || "Algeria";
+  settingsMethod.value  = String(calcMethod ?? 19);
+}
+
+settingsToggle.addEventListener("click", async () => {
+  const hidden = settingsPanel.classList.contains("hidden");
+  if (hidden) {
+    await renderSettings();
+    settingsStatus.textContent = "";
+  }
+  settingsPanel.classList.toggle("hidden");
+});
+
+settingsCancel.addEventListener("click", () => {
+  settingsPanel.classList.add("hidden");
+});
+
+settingsSave.addEventListener("click", () => {
+  const city    = settingsCity.value.trim();
+  const country = settingsCountry.value.trim();
+  const method  = Number(settingsMethod.value);
+
+  if (!city || !country) {
+    settingsStatus.textContent = "City and country are required";
+    settingsStatus.style.color = "#f87171";
+    return;
+  }
+
+  settingsStatus.textContent = "Updating...";
+  settingsStatus.style.color = "#fbbf24";
+
+  chrome.runtime.sendMessage(
+    { type: "updateSettings", city, country, method },
+    (res) => {
+      if (res && res.success) {
+        settingsStatus.textContent = "Saved";
+        settingsStatus.style.color = "#22c55e";
+        setTimeout(() => settingsPanel.classList.add("hidden"), 800);
+      } else {
+        settingsStatus.textContent = "Could not update";
+        settingsStatus.style.color = "#f87171";
+      }
+    }
+  );
 });
 
 // Keep the popup live if it's left open while storage changes (e.g. the
 // minute-tick alarm fires while the user is looking at it).
+const PRAYER_STORAGE_KEYS = new Set([
+  "isAdhanTime", "currentPrayer", "currentPrayerTime",
+  "nextPrayer", "nextPrayerTime", "lastError",
+  "timingsStale", "notificationsEnabled",
+]);
+
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === "local") {
-    render();
+    for (const key of Object.keys(changes)) {
+      if (PRAYER_STORAGE_KEYS.has(key)) {
+        render();
+        return;
+      }
+    }
   }
 });
 

@@ -13,6 +13,9 @@
     <h1 class="title">DID U PRAY?</h1>
 
     
+    <p id="location-display" class="location-text"></p>
+
+    
     <div id="waiting-screen" class="prayer-card">
 
         <p class="label">Next Prayer</p>
@@ -42,6 +45,44 @@
             Wlh I Prayed
         </button>
 
+    </div>
+
+    <button id="settings-toggle" class="gear-btn">&#9881;&#65039;</button>
+
+    <div id="settings-panel" class="prayer-card hidden">
+        <h3>Settings</h3>
+        <input id="settings-city"    type="text"  placeholder="City" />
+        <input id="settings-country" type="text"  placeholder="Country" />
+        <select id="settings-method">
+            <option value="0">Shia Ithna-Ashari (Leva, Qum)</option>
+            <option value="19">Algeria</option>
+            <option value="12">France (UOIF)</option>
+            <option value="3">Muslim World League</option>
+            <option value="2">ISNA (North America)</option>
+            <option value="5">Egyptian General Authority</option>
+            <option value="4">Umm Al-Qura (Makkah)</option>
+            <option value="1">Karachi (UI Sciences)</option>
+            <option value="7">Tehran</option>
+            <option value="8">Gulf Region</option>
+            <option value="9">Kuwait</option>
+            <option value="10">Qatar</option>
+            <option value="11">Singapore</option>
+            <option value="13">Diyanet Turkey</option>
+            <option value="14">Russia</option>
+            <option value="15">Moonsighting Committee</option>
+            <option value="16">Dubai</option>
+            <option value="17">JAKIM (Malaysia)</option>
+            <option value="18">Tunisia</option>
+            <option value="20">Kemenag (Indonesia)</option>
+            <option value="21">Morocco</option>
+            <option value="22">Portugal</option>
+            <option value="23">Jordan</option>
+        </select>
+        <div class="settings-actions">
+            <button id="settings-save"   class="btn">Save</button>
+            <button id="settings-cancel" class="btn btn-secondary">Cancel</button>
+        </div>
+        <p id="settings-status"></p>
     </div>
 
 </div>
