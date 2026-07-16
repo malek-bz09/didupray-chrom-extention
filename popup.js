@@ -87,11 +87,7 @@ async function render() {
   updateNotifyButton(Boolean(state.notificationsEnabled));
 
   const locationEl = document.getElementById("location-display");
-  if (state.locationCity) {
-    locationEl.textContent = `${state.locationCity}, ${state.locationCountry} (method ${state.calcMethod ?? 19})`;
-  } else {
-    locationEl.textContent = "Algiers, Algeria (method 19)";
-  }
+  locationEl.textContent = `${state.locationCity ?? "Algiers"}, ${state.locationCountry ?? "Algeria"} (method ${state.calcMethod ?? 19})`;
 
   if (state.lastError && !state.nextPrayerTime && !state.currentPrayerTime) {
     stopCountdown();
