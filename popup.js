@@ -116,6 +116,65 @@ document.getElementById("pray-btn").addEventListener("click", () => {
   render();
 });
 
+const settingsToggle = document.getElementById("settings-toggle");
+const settingsPanel  = document.getElementById("settings-panel");
+const settingsCity   = document.getElementById("settings-city");
+const settingsCountry = document.getElementById("settings-country");
+const settingsMethod = document.getElementById("settings-method");
+const settingsSave   = document.getElementById("settings-save");
+const settingsCancel = document.getElementById("settings-cancel");
+const settingsStatus = document.getElementById("settings-status");
+
+async function renderSettings() {
+  const { locationCity, locationCountry, calcMethod } =
+    await chrome.storage.local.get(["locationCity", "locationCountry", "calcMethod"]);
+  settingsCity.value    = locationCity    || "Algiers";
+  settingsCountry.value = locationCountry || "Algeria";
+  settingsMethod.value  = String(calcMethod ?? 19);
+}
+
+settingsToggle.addEventListener("click", async () => {
+  const hidden = settingsPanel.classList.contains("hidden");
+  if (hidden) {
+    await renderSettings();
+    settingsStatus.textContent = "";
+  }
+  settingsPanel.classList.toggle("hidden");
+});
+
+settingsCancel.addEventListener("click", () => {
+  settingsPanel.classList.add("hidden");
+});
+
+settingsSave.addEventListener("click", () => {
+  const city    = settingsCity.value.trim();
+  const country = settingsCountry.value.trim();
+  const method  = Number(settingsMethod.value);
+
+  if (!city || !country) {
+    settingsStatus.textContent = "City and country are required";
+    settingsStatus.style.color = "#f87171";
+    return;
+  }
+
+  settingsStatus.textContent = "Updating...";
+  settingsStatus.style.color = "#fbbf24";
+
+  chrome.runtime.sendMessage(
+    { type: "updateSettings", city, country, method },
+    (res) => {
+      if (res && res.success) {
+        settingsStatus.textContent = "Saved";
+        settingsStatus.style.color = "#22c55e";
+        setTimeout(() => settingsPanel.classList.add("hidden"), 800);
+      } else {
+        settingsStatus.textContent = "Could not update";
+        settingsStatus.style.color = "#f87171";
+      }
+    }
+  );
+});
+
 // Keep the popup live if it's left open while storage changes (e.g. the
 // minute-tick alarm fires while the user is looking at it).
 chrome.storage.onChanged.addListener((changes, areaName) => {
