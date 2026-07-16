@@ -39,8 +39,18 @@ function sleep(ms) {
 }
 
 async function fetchPrayerTimes() {
-  const url =
-    "https://api.aladhan.com/v1/timingsByCity?city=Algiers&country=Algeria";
+  const { locationCity, locationCountry, calcMethod } =
+    await chrome.storage.local.get([
+      "locationCity",
+      "locationCountry",
+      "calcMethod",
+    ]);
+
+  const city = locationCity || "Algiers";
+  const country = locationCountry || "Algeria";
+  const method = calcMethod ?? 19;
+
+  const url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=${method}`;
 
   const maxAttempts = 3;
   let lastError;
@@ -60,6 +70,11 @@ async function fetchPrayerTimes() {
       }
 
       const data = await response.json();
+      await chrome.storage.local.set({
+        locationCity: city,
+        locationCountry: country,
+        calcMethod: method,
+      });
       return data.data.timings;
     } catch (err) {
       lastError = err;
@@ -204,5 +219,20 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== "local") return;
   if (changes.notificationsEnabled || changes.isAdhanTime) {
     syncBlocking();
+  }
+});
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === "updateSettings") {
+    chrome.storage.local
+      .set({
+        locationCity: msg.city,
+        locationCountry: msg.country,
+        calcMethod: msg.method,
+      })
+      .then(() => checkPrayerTime())
+      .then(() => sendResponse({ success: true }))
+      .catch(() => sendResponse({ success: false }));
+    return true;
   }
 });
