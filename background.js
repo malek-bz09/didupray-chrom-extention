@@ -90,15 +90,20 @@ async function fetchPrayerTimes() {
 
 async function getTodaysTimings() {
   const today = new Date().toDateString();
-  const stored = await chrome.storage.local.get(["timings", "timingsDate"]);
+  const stored = await chrome.storage.local.get([
+    "timings", "timingsDate",
+    "locationCity", "locationCountry", "calcMethod",
+  ]);
 
-  if (stored.timings && stored.timingsDate === today) {
+  const cacheKey = `${stored.locationCity || "Algiers"}|${stored.locationCountry || "Algeria"}|${stored.calcMethod ?? 19}`;
+
+  if (stored.timings && stored.timingsDate === today && stored.timingsCacheKey === cacheKey) {
     return { timings: stored.timings, stale: false };
   }
 
   try {
     const timings = await fetchPrayerTimes();
-    await chrome.storage.local.set({ timings, timingsDate: today });
+    await chrome.storage.local.set({ timings, timingsDate: today, timingsCacheKey: cacheKey });
     return { timings, stale: false };
   } catch (err) {
     if (stored.timings) {
