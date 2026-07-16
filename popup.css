@@ -113,12 +113,6 @@ body {
     min-height: 1em;
 }
 
-#status {
-    margin-top: 15px;
-    color: #22c55e;
-    font-weight: bold;
-}
-
 .gear-btn {
     position: absolute;
     top: 14px;

@@ -197,9 +197,11 @@ async function checkPrayerTime() {
       });
     }
     await syncBlocking();
+    return true;
   } catch (err) {
     console.error("checkPrayerTime failed:", err);
     await chrome.storage.local.set({ lastError: err.message });
+    return false;
   }
 }
 

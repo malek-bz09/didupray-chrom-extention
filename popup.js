@@ -41,11 +41,15 @@ function formatCountdown(nextPrayerTime) {
 
 let countdownTimer = null;
 
-function startCountdown(nextPrayerTime) {
+function startCountdown(nextPrayerTime, isStale) {
   if (countdownTimer) clearInterval(countdownTimer);
 
   const update = () => {
-    document.getElementById("countdown").textContent = formatCountdown(nextPrayerTime);
+    let text = formatCountdown(nextPrayerTime);
+    if (isStale) {
+      text += " (offline, using last known times)";
+    }
+    document.getElementById("countdown").textContent = text;
   };
 
   update();
@@ -105,11 +109,7 @@ async function render() {
     document.getElementById("next-prayer-name").textContent = state.nextPrayer ?? "—";
     document.getElementById("next-prayer-time").textContent = state.nextPrayerTime ?? "";
     if (state.nextPrayerTime) {
-      startCountdown(state.nextPrayerTime);
-    }
-    if (state.timingsStale) {
-      document.getElementById("countdown").textContent +=
-        " (offline, using last known times)";
+      startCountdown(state.nextPrayerTime, state.timingsStale);
     }
   }
 }
@@ -123,7 +123,6 @@ document.getElementById("notify-btn").addEventListener("click", async () => {
 
 document.getElementById("pray-btn").addEventListener("click", () => {
   chrome.storage.local.set({ isAdhanTime: false });
-  render();
 });
 
 const settingsToggle = document.getElementById("settings-toggle");
