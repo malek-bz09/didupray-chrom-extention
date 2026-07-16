@@ -75,9 +75,19 @@ async function render() {
     "lastError",
     "timingsStale",
     "notificationsEnabled",
+    "locationCity",
+    "locationCountry",
+    "calcMethod",
   ]);
 
   updateNotifyButton(Boolean(state.notificationsEnabled));
+
+  const locationEl = document.getElementById("location-display");
+  if (state.locationCity) {
+    locationEl.textContent = `${state.locationCity}, ${state.locationCountry} (method ${state.calcMethod ?? 19})`;
+  } else {
+    locationEl.textContent = "Algiers, Algeria (method 19)";
+  }
 
   if (state.lastError && !state.nextPrayerTime && !state.currentPrayerTime) {
     stopCountdown();
@@ -177,9 +187,20 @@ settingsSave.addEventListener("click", () => {
 
 // Keep the popup live if it's left open while storage changes (e.g. the
 // minute-tick alarm fires while the user is looking at it).
+const PRAYER_STORAGE_KEYS = new Set([
+  "isAdhanTime", "currentPrayer", "currentPrayerTime",
+  "nextPrayer", "nextPrayerTime", "lastError",
+  "timingsStale", "notificationsEnabled",
+]);
+
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === "local") {
-    render();
+    for (const key of Object.keys(changes)) {
+      if (PRAYER_STORAGE_KEYS.has(key)) {
+        render();
+        return;
+      }
+    }
   }
 });
 

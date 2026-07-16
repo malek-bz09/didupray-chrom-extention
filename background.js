@@ -236,7 +236,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         calcMethod: msg.method,
       })
       .then(() => checkPrayerTime())
-      .then(() => sendResponse({ success: true }))
+      .then((ok) => sendResponse({ success: ok }))
       .catch(() => sendResponse({ success: false }));
     return true;
   }
