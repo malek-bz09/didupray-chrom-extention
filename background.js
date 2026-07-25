@@ -30,7 +30,7 @@ function getNextPrayer(timings) {
       return prayer;
     }
   }
-  // Nothing left today, next one is tomorrow's Fajr
+ 
   return toPrayerList(timings)[0];
 }
 
@@ -50,8 +50,7 @@ async function fetchPrayerTimes() {
       const response = await fetch(url);
 
       if (!response.ok) {
-        // 5xx = API-side issue, worth retrying. 4xx = our request is
-        // wrong, retrying won't help.
+
         if (response.status >= 500 && attempt < maxAttempts) {
           await sleep(attempt * 1000); // 1s, then 2s
           continue;
@@ -72,10 +71,7 @@ async function fetchPrayerTimes() {
   throw lastError;
 }
 
-// Fetch fresh timings from the API, but only once per calendar day.
-// Returns the cached (or newly fetched) timings. If the API is down,
-// falls back to whatever timings we last had (even if stale) rather
-// than leaving the user with nothing.
+
 async function getTodaysTimings() {
   const today = new Date().toDateString();
   const stored = await chrome.storage.local.get(["timings", "timingsDate"]);
@@ -90,8 +86,7 @@ async function getTodaysTimings() {
     return { timings, stale: false };
   } catch (err) {
     if (stored.timings) {
-      // API is down but we have yesterday's (or older) timings cached.
-      // Better to show slightly-off times than nothing at all.
+
       console.warn("Using stale cached timings due to fetch failure:", err);
       return { timings: stored.timings, stale: true };
     }
@@ -99,9 +94,7 @@ async function getTodaysTimings() {
   }
 }
 
-// ---- Site blocking ----
-// Sites to block while it's adhan time and blocking is enabled.
-// Edit this list to whatever you want blocked.
+
 const BLOCKED_SITES = [
   "youtube.com",
   "instagram.com",
@@ -144,8 +137,7 @@ async function disableBlocking() {
   });
 }
 
-// Reconciles the declarativeNetRequest rules with current state:
-// block sites only when it's adhan time AND the user has notifications on.
+
 async function syncBlocking() {
   const { isAdhanTime, notificationsEnabled } = await chrome.storage.local.get(
     ["isAdhanTime", "notificationsEnabled"]
@@ -158,7 +150,7 @@ async function syncBlocking() {
   }
 }
 
-// ---- Prayer time checking ----
+
 
 async function checkPrayerTime() {
   try {
@@ -195,8 +187,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create("checkPrayerTime", { periodInMinutes: 1 });
 });
 
-// In case the service worker was restarted and the alarm already exists,
-// make sure we still have data on startup.
+
 chrome.runtime.onStartup.addListener(() => {
   checkPrayerTime();
 });
@@ -207,8 +198,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 });
 
-// React instantly (don't wait for the next minute-tick) when the popup
-// toggles Notify Me, or clicks "Wlh I Prayed" (which sets isAdhanTime: false).
+
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== "local") return;
   if (changes.notificationsEnabled || changes.isAdhanTime) {

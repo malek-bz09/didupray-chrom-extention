@@ -25,7 +25,7 @@ function formatCountdown(nextPrayerTime) {
   target.setHours(hour, minute, 0, 0);
 
   if (target <= now) {
-    target.setDate(target.getDate() + 1); // next prayer rolls into tomorrow
+    target.setDate(target.getDate() + 1); 
   }
 
   const diffMs = target - now;
@@ -116,8 +116,7 @@ document.getElementById("pray-btn").addEventListener("click", () => {
   render();
 });
 
-// Keep the popup live if it's left open while storage changes (e.g. the
-// minute-tick alarm fires while the user is looking at it).
+
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === "local") {
     render();
