@@ -118,7 +118,7 @@ document.getElementById("notify-btn").addEventListener("click", async () => {
 });
 
 document.getElementById("pray-btn").addEventListener("click", () => {
-  chrome.storage.local.set({ isAdhanTime: false });
+  chrome.runtime.sendMessage({ type: "acknowledgePrayer" });
 });
 
 const settingsToggle = document.getElementById("settings-toggle");
@@ -180,6 +180,20 @@ settingsSave.addEventListener("click", () => {
   );
 });
 
+
+const PRAYER_STORAGE_KEYS = new Set([
+  "isAdhanTime",
+  "currentPrayer",
+  "currentPrayerTime",
+  "nextPrayer",
+  "nextPrayerTime",
+  "lastError",
+  "timingsStale",
+  "notificationsEnabled",
+  "locationCity",
+  "locationCountry",
+  "calcMethod",
+]);
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === "local") {

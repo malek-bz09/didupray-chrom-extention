@@ -9,16 +9,36 @@ function toPrayerList(timings) {
   return PRAYER_NAMES.map((name) => ({ name, time: timings[name] }));
 }
 
+// The most recent prayer that has already started today, or null before Fajr.
+// A prayer stays "current" until the next one starts, so a delayed or skipped
+// alarm tick can't make us miss it.
 function getCurrentPrayer(timings) {
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
+  let current = null;
   for (const prayer of toPrayerList(timings)) {
-    if (currentMinutes === timeToMinutes(prayer.time)) {
-      return prayer;
+    if (currentMinutes >= timeToMinutes(prayer.time)) {
+      current = prayer;
     }
   }
-  return null;
+  return current;
+}
+
+async function getAcknowledgedPrayers() {
+  const today = new Date().toDateString();
+  const { acknowledged } = await chrome.storage.local.get("acknowledged");
+  return acknowledged && acknowledged.date === today ? acknowledged.prayers : [];
+}
+
+async function acknowledgePrayer() {
+  const today = new Date().toDateString();
+  const { currentPrayer } = await chrome.storage.local.get("currentPrayer");
+  if (!currentPrayer) return;
+
+  const prayers = await getAcknowledgedPrayers();
+  if (!prayers.includes(currentPrayer)) prayers.push(currentPrayer);
+  await chrome.storage.local.set({ acknowledged: { date: today, prayers } });
 }
 
 function getNextPrayer(timings) {
@@ -90,7 +110,7 @@ async function fetchPrayerTimes() {
 async function getTodaysTimings() {
   const today = new Date().toDateString();
   const stored = await chrome.storage.local.get([
-    "timings", "timingsDate",
+    "timings", "timingsDate", "timingsCacheKey",
     "locationCity", "locationCountry", "calcMethod",
   ]);
 
@@ -135,10 +155,24 @@ function buildBlockRules() {
       redirect: { extensionPath: "/blocked.html" },
     },
     condition: {
-      urlFilter: `||${site}`,
+      // requestDomains matches the domain and its subdomains exactly,
+      // unlike urlFilter "||x.com" which also matches "x.company.com".
+      requestDomains: [site],
       resourceTypes: ["main_frame"],
     },
   }));
+}
+
+// Rules only catch new navigations, so tabs that are already open on a
+// blocked site (or navigating inside a SPA like YouTube) need redirecting.
+async function redirectOpenTabs() {
+  const tabs = await chrome.tabs.query({
+    url: BLOCKED_SITES.map((site) => `*://*.${site}/*`),
+  });
+  const blockedUrl = chrome.runtime.getURL("blocked.html");
+  await Promise.all(
+    tabs.map((tab) => chrome.tabs.update(tab.id, { url: blockedUrl }))
+  );
 }
 
 async function enableBlocking() {
@@ -147,6 +181,7 @@ async function enableBlocking() {
     removeRuleIds: rules.map((r) => r.id),
     addRules: rules,
   });
+  await redirectOpenTabs();
 }
 
 async function disableBlocking() {
@@ -176,8 +211,9 @@ async function checkPrayerTime() {
   try {
     const { timings, stale } = await getTodaysTimings();
     const currentPrayer = getCurrentPrayer(timings);
+    const acknowledged = await getAcknowledgedPrayers();
 
-    if (currentPrayer) {
+    if (currentPrayer && !acknowledged.includes(currentPrayer.name)) {
       await chrome.storage.local.set({
         isAdhanTime: true,
         currentPrayer: currentPrayer.name,
@@ -223,7 +259,8 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName !== "local") return;
-  if (changes.notificationsEnabled || changes.isAdhanTime) {
+  // isAdhanTime changes are already synced by checkPrayerTime.
+  if (changes.notificationsEnabled) {
     syncBlocking();
   }
 });
@@ -236,6 +273,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         locationCountry: msg.country,
         calcMethod: msg.method,
       })
+      .then(() => checkPrayerTime())
+      .then((ok) => sendResponse({ success: ok }))
+      .catch(() => sendResponse({ success: false }));
+    return true;
+  }
+
+  if (msg.type === "acknowledgePrayer") {
+    acknowledgePrayer()
       .then(() => checkPrayerTime())
       .then((ok) => sendResponse({ success: ok }))
       .catch(() => sendResponse({ success: false }));
